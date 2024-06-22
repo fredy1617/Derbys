@@ -20,7 +20,7 @@ const Derbys = () => {
 
   return (
     <div className="mx-auto container p-8">
-      <h1 className="text-3xl font-bold text-warning-900 mb-4">Derbys:</h1>
+      <h1 className="text-3xl font-bold text-warning-900 mb-6">Mis Derbys:</h1>
       <div className="-m-1 flex flex-wrap md:-m-2">
         {tabContent.map(item => (
           <div key={item.id} className="flex w-1/4 flex-wrap">
