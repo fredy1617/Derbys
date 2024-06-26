@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\DerbysController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\GroupController;
+use App\Http\Controllers\MatchesController;
+use App\Http\Controllers\RolController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/example', function (Request $request) {
-    return response()->json(['message' => 'Hello from Laravel API SI ES DEDES ACA']);
-});
 
-Route::resource('derbys', DerbysController::class);
+Route::apiResource('derbys', DerbysController::class);
+Route::apiResource('matches', MatchesController::class);
+Route::apiResource('groups', GroupController::class);
+Route::apiResource('roles', RolController::class);
