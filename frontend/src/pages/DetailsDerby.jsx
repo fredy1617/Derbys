@@ -42,7 +42,6 @@ const DetailsDerby = () => {
     try {
       const response = await axios.get(`/roles/${id}`);      
       setRound(response.data);
-      console.log(response.data);
     } catch (error) {
       console.error(error);
     }
@@ -248,6 +247,50 @@ const DetailsDerby = () => {
     }
   };
 
+  const [ganadoresSeleccionados, setGanadoresSeleccionados] = useState([]);
+  const [tablaPosition, setTablaPosition] = useState([]);
+  const [tableModalPositions, setTableModalPositions] = useState(false);
+
+  const handleCloseModalTablePositions = () => {
+    setTableModalPositions(false);
+  };
+
+  // Función para manejar la selección de ganadores
+  const handleSeleccionarGanador = (roundId, gallo, anillo) => {
+    // Verificar si ya está seleccionado
+    const isSelected = ganadoresSeleccionados.find(item => item.roundId === roundId && item.gallo === gallo);
+
+    if (isSelected) {
+      // Si ya está seleccionado, deseleccionar
+      const filtered = ganadoresSeleccionados.filter(item => !(item.roundId === roundId && item.gallo === gallo));
+      setGanadoresSeleccionados(filtered);
+    } else {
+      // Deseleccionar el otro gallo si está seleccionado
+      const otroGallo = gallo === 'gallo1' ? 'gallo2' : 'gallo1';
+      const deseleccionado = ganadoresSeleccionados.find(item => item.roundId === roundId && item.gallo === otroGallo);
+
+      if (deseleccionado) {
+        const filtered = ganadoresSeleccionados.filter(item => !(item.roundId === roundId && item.gallo === otroGallo));
+        setGanadoresSeleccionados([...filtered, { roundId, gallo, anillo }]);
+      } else {
+        setGanadoresSeleccionados([...ganadoresSeleccionados, { roundId, gallo, anillo }]);
+      }
+    }
+  };
+
+  const handleGeneratePositions = async (id) => {
+    console.log(ganadoresSeleccionados);
+    try {
+      const response = await axios.put(`/roles/${id}`, ganadoresSeleccionados );
+      setTablaPosition(response.data);
+      console.log(response.data);
+      setTableModalPositions(true);
+    } catch (error) {
+        console.error(error);
+        alert('Error al generar tabla');
+    }
+  }
+
   if (!derbyDetails) return <div>Loading...</div>;
 
   return (
@@ -414,15 +457,21 @@ const DetailsDerby = () => {
           <h1 className='text-2xl text-sky-900'><b>ROL (ENFRENTAMIENTOS):</b></h1>
           <div className="grid grid-cols-1 justify-items-stretch">
             <div className="justify-self-end flex justify-center items-center px-2 py-2 ">
-              <button onClick={() => handleGenerateRolPDF(id)} className="bg-gray-800 hover:bg-gray-700 text-white rounded p-2 flex items-center">
+            <button onClick={() => handleGenerateRolPDF(id)} className="bg-gray-800 hover:bg-gray-600 text-white rounded p-2 flex items-center mr-2">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5 mr-2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                     </svg>
                     Descargar PDF
               </button>
+              <button onClick={() => handleGeneratePositions(id)} className="bg-blue-800 hover:bg-blue-700 text-white rounded p-2 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5 mr-2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z"/>
+                    </svg>
+                    Tabla de Posiciones
+              </button>
             </div>
           </div>
-          <h1 className='text-sm text-yellow-800'><b>NOTA: Si en la ultima ronda existe una pelea subrayada en azul y los partidos, anillos y pesos son iguales eso significa que es una pelea con un gallo extra</b></h1>
+          <h1 className='text-sm text-yellow-800'><b>NOTA: Si en la ultima ronda existe una pelea subrayada en azul y los anillos y pesos son iguales eso significa que es una pelea con un gallo extra</b></h1>
           {/* Ciclo para generar rondas según derby.no_rooster */}
           {Array.from({ length: derbyDetails.no_roosters }).map((_, index) => (
             <div key={index}>
@@ -445,18 +494,43 @@ const DetailsDerby = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {rounds.filter(round => round.ronda === index + 1).map((round, i) => (
-                            <tr key={round.id} className={`border-b bg-white dark:border-neutral-500 ${round.gallo2.ring === round.gallo1.ring ? 'bg-blue-200' : ''}`}>
-                              <td className="whitespace-nowrap px-6 py-2">{i + 1}</td>
-                              <td className="whitespace-nowrap px-6 py-2">{round.gallo1.weight}g</td>
-                              <td className="whitespace-nowrap px-6 py-2">{round.gallo1.ring}</td>
-                              <td className="whitespace-nowrap px-6 py-2 font-bold text-green-700 text-right"  style={{ whiteSpace: 'pre-wrap' }}>{round.gallo1.match_name}</td>
-                              <td className="whitespace-nowrap px-6 py-2 font-bold">VS</td>
-                              <td className="whitespace-nowrap px-6 py-2 font-bold text-red-600"  style={{ whiteSpace: 'pre-wrap' }}>{round.gallo2.match_name}</td>
-                              <td className="whitespace-nowrap px-6 py-2">{round.gallo2.weight}g</td>
-                              <td className="whitespace-nowrap px-6 py-2">{round.gallo2.ring}</td>
-                            </tr>
-                          ))}
+                          {rounds.filter(round => round.ronda === index + 1).map((round, i) => {
+                            const isCheckedGallo1 = ganadoresSeleccionados.some(item => item.roundId === round.id && item.gallo === 'gallo1');
+                            const isCheckedGallo2 = ganadoresSeleccionados.some(item => item.roundId === round.id && item.gallo === 'gallo2');
+
+                            return (
+                              <tr key={round.id} className={`border-b bg-white dark:border-neutral-500 ${round.gallo2.ring === round.gallo1.ring ? 'bg-blue-300' : ''}`}>
+                                <td className="whitespace-nowrap px-6 py-2">{i + 1}</td>
+                                <td className="whitespace-nowrap px-6 py-2">{round.gallo1.weight}g</td>
+                                <td className="whitespace-nowrap px-6 py-2">{round.gallo1.ring}</td>
+                                <td className="whitespace-nowrap px-6 py-2 font-bold text-green-700 text-right" style={{ whiteSpace: 'pre-wrap' }}>
+                                    {round.gallo1.match_name}
+                                    <input
+                                      className='ml-3 h-5 w-5'
+                                      type="checkbox"
+                                      id={`ganador-${round.id}-${i}-gallo1`}
+                                      name={`ganador-${round.id}-${i}-gallo1`}
+                                      checked={isCheckedGallo1}
+                                      onChange={() => handleSeleccionarGanador(round.id, 'gallo1', round.gallo1.ring)}
+                                    />
+                                </td>
+                                <td className="whitespace-nowrap px-6 py-2 font-bold">VS</td>
+                                <td className="whitespace-nowrap px-6 py-2 font-bold text-red-600" style={{ whiteSpace: 'pre-wrap' }}>
+                                    <input
+                                      className='mr-3 h-5 w-5'
+                                      type="checkbox"
+                                      id={`ganador-${round.id}-${i}-gallo2`}
+                                      name={`ganador-${round.id}-${i}-gallo2`}
+                                      checked={isCheckedGallo2}
+                                      onChange={() => handleSeleccionarGanador(round.id, 'gallo2', round.gallo2.ring)}
+                                    />
+                                    {round.gallo2.ring === round.gallo1.ring ? 'GALLO EXTRA' : round.gallo2.match_name}
+                                </td>
+                                <td className="whitespace-nowrap px-6 py-2">{round.gallo2.weight}g</td>
+                                <td className="whitespace-nowrap px-6 py-2">{round.gallo2.ring}</td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>
@@ -466,8 +540,6 @@ const DetailsDerby = () => {
             </div>
           ))}
           {/* Aquí termina el ciclo */}
-
-
         </div>
       </div>
       {editModalVisible && selectedMatch && (
@@ -694,6 +766,58 @@ const DetailsDerby = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {tableModalPositions && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg">
+            <h2 className="text-2xl font-semibold mb-4 text-center">Tabla de Posiciones</h2>
+            <hr />
+            <div className="flex flex-col container mb-10">
+              <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
+                <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full text-left text-sm font-light border border-gray-300">
+                      <thead className="bg-neutral-400 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-200">
+                        <tr>
+                          <th scope="col" className="px-6 py-4 border-b border-gray-300">Posicion</th>
+                          <th scope="col" className="px-6 py-4 border-b border-gray-300">Partido</th>
+                          <th scope="col" className="px-6 py-4 border-b border-gray-300">Gallo N° 1</th>
+                          <th scope="col" className="px-6 py-4 border-b border-gray-300">Gallo N° 2</th>
+                          <th scope="col" className="px-6 py-4 border-b border-gray-300">Gallo N° 3</th>
+                          <th scope="col" className="px-6 py-4 border-b border-gray-300">Puntos</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {tablaPosition.map((match, index) => (
+                          <tr key={match.id} className="bg-white dark:bg-neutral-700">
+                            <td className="px-6 py-4 font-bold border-b border-gray-300">{index + 1}</td>
+                            <td className="px-6 py-4 font-bold border-b border-gray-300">{match.name}</td>
+                            {match.roosters && match.roosters.map((rooster, index) => (
+                              <td className="px-6 py-4 font-bold border-b border-gray-300" key={index}><b><b>{rooster.pelea}</b></b></td>
+                            ))}
+                            <td className="px-6 py-4 font-bold border-b border-gray-300">{match.puntos}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-end">
+                <button
+                  type="button"
+                  onClick={handleCloseModalTablePositions}
+                  className="mr-2 px-4 py-2 bg-neutral-900 hover:bg-neutral-700 text-white font-bold rounded flex"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" class="h-5 w-5 mr-2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                  Cerrar
+                </button>
+              </div>
           </div>
         </div>
       )}
