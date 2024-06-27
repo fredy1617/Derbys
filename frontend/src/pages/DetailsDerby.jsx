@@ -111,8 +111,30 @@ const DetailsDerby = () => {
     }
   };
 
-  const handleGenerateMatchsPDF = () => {
-    // Implementar lógica para generar PDFs
+  const handleGenerateMatchsPDF = async (id) => {
+    try {
+      const response = await axios.get(`/generate-pdf-matches/${id}`, {
+         responseType: 'blob',
+      });
+      const pdfUrl = URL.createObjectURL(response.data);
+      alert("Imprimiendo PDF de los partidos . . .");
+      window.open(pdfUrl, '_blank');
+    } catch (e) {
+      alert(e.response.data.message);
+    }
+  };
+
+  const handleGenerateRolPDF = async (id) => {
+    try {
+      const response = await axios.get(`/generate-pdf-rol/${id}`, {
+         responseType: 'blob',
+      });
+      const pdfUrl = URL.createObjectURL(response.data);
+      alert("Imprimiendo PDF del Rol (enfrentamientos) . . .");
+      window.open(pdfUrl, '_blank');
+    } catch (e) {
+      alert(e.response.data.message);
+    }
   };
 
   const handleEditClick = (match) => {
@@ -333,7 +355,7 @@ const DetailsDerby = () => {
                     </svg>
                     Generar Rol
                   </button>
-                  <button onClick={handleGenerateMatchsPDF} className="bg-gray-500 hover:bg-gray-700 text-white rounded p-2 flex items-center">
+                  <button onClick={() => handleGenerateMatchsPDF(id)} className="bg-gray-500 hover:bg-gray-700 text-white rounded p-2 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5 mr-2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                     </svg>
@@ -392,7 +414,7 @@ const DetailsDerby = () => {
           <h1 className='text-2xl text-sky-900'><b>ROL (ENFRENTAMIENTOS):</b></h1>
           <div className="grid grid-cols-1 justify-items-stretch">
             <div className="justify-self-end flex justify-center items-center px-2 py-2 ">
-              <button onClick={handleGenerateMatchsPDF} className="bg-gray-800 hover:bg-gray-700 text-white rounded p-2 flex items-center">
+              <button onClick={() => handleGenerateRolPDF(id)} className="bg-gray-800 hover:bg-gray-700 text-white rounded p-2 flex items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5 mr-2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
                     </svg>
