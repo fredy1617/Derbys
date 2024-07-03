@@ -23,7 +23,7 @@ const Derbys = () => {
       <h1 className="text-3xl font-bold text-warning-900 mb-6">Mis Derbys:</h1>
       <div className="-m-1 flex flex-wrap md:-m-2">
         {tabContent.map(item => (
-          <div key={item.id} className="flex w-1/4 flex-wrap">
+          <div key={item.id} className="flex w-full md:w-1/4 flex-wrap">
             <div className="w-full p-1">
               <div className="flex justify-center">
                 <div className="block max-w-sm rounded-lg bg-white shadow-lg dark:bg-neutral-700 px-6 py-4">

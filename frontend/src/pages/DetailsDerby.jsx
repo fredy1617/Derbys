@@ -471,7 +471,7 @@ const DetailsDerby = () => {
               </button>
             </div>
           </div>
-          <h1 className='text-sm text-yellow-800'><b>NOTA: Si en la ultima ronda existe una pelea subrayada en azul y los anillos y pesos son iguales eso significa que es una pelea con un gallo extra</b></h1>
+          <h1 className='text-sm text-yellow-800'><b>NOTA: Si en alguna ronda existe una pelea subrayada en azul y los anillos y pesos son iguales eso significa que es una pelea con un gallo extra</b></h1>
           {/* Ciclo para generar rondas según derby.no_rooster */}
           {Array.from({ length: derbyDetails.no_roosters }).map((_, index) => (
             <div key={index}>
@@ -499,7 +499,7 @@ const DetailsDerby = () => {
                             const isCheckedGallo2 = ganadoresSeleccionados.some(item => item.roundId === round.id && item.gallo === 'gallo2');
 
                             return (
-                              <tr key={round.id} className={`border-b bg-white dark:border-neutral-500 ${round.gallo2.ring === round.gallo1.ring ? 'bg-blue-300' : ''}`}>
+                              <tr key={round.id} className={`border-b dark:border-neutral-500 ${round.gallo2.ring === round.gallo1.ring ? 'bg-blue-400' : 'bg-white'}`}>
                                 <td className="whitespace-nowrap px-6 py-2">{i + 1}</td>
                                 <td className="whitespace-nowrap px-6 py-2">{round.gallo1.weight}g</td>
                                 <td className="whitespace-nowrap px-6 py-2">{round.gallo1.ring}</td>
