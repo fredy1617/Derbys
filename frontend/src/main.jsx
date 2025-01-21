@@ -6,13 +6,17 @@ import "./index.css";
 import 'tw-elements';
 import { Provider } from 'react-redux';
 import { store } from './store';
+import { AuthProvider } from './contexts/AuthContext'; // Asegúrate de que la ruta sea correcta
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-        <Provider store={store}>
+      <Provider store={store}>
+        <AuthProvider>
           <App />
-        </Provider>
+        </AuthProvider>
+      </Provider>
     </BrowserRouter>
   </React.StrictMode>
 );
+

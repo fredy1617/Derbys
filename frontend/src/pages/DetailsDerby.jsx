@@ -105,7 +105,11 @@ const DetailsDerby = () => {
         alert (response.data.message);
         fetchRol();
       } catch (e) {
-        alert('Error al generar el rol'); 
+        if (e.response && e.response.status === 500) {
+          alert(e.response.data.message);
+        }else{
+          alert('Error al editar el grupo');
+        }    
       }
     }
   };
@@ -279,11 +283,9 @@ const DetailsDerby = () => {
   };
 
   const handleGeneratePositions = async (id) => {
-    console.log(ganadoresSeleccionados);
     try {
       const response = await axios.put(`/roles/${id}`, ganadoresSeleccionados );
       setTablaPosition(response.data);
-      console.log(response.data);
       setTableModalPositions(true);
     } catch (error) {
         console.error(error);
@@ -292,6 +294,26 @@ const DetailsDerby = () => {
   }
 
   if (!derbyDetails) return <div>Loading...</div>;
+
+  useEffect(() => {
+    setIsDisabled(isButtonDisabled());
+  }, [derbyDetails]); // Dependencia: se ejecuta cuando derbyDetails cambia
+
+  const [isDisabled, setIsDisabled] = useState(false);
+
+  const isButtonDisabled = () => {  
+    // Crear un objeto Date con la fecha extraída
+    const derbyDate = new Date(derbyDetails.date_created);
+    const currentDate = new Date();
+  
+    // Calculate the difference in time
+    const diffTime = Math.abs(currentDate - derbyDate);
+  
+    // Convert time difference from milliseconds to days
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+    return diffDays > 6; // Disable if maypr a 6 days have passed
+  };
 
   return (
     <div className="mx-auto container p-8">
@@ -336,6 +358,8 @@ const DetailsDerby = () => {
         }
         <div className="hidden opacity-0 opacity-100 transition-opacity duration-150 ease-linear data-[te-tab-active]:block"
           id="tabs-matches" role="tabpanel" aria-labelledby="tabs-matches-tab" data-te-tab-active>
+          {!isDisabled && (
+            <>
           <h1 className="text-xl font-bold text-warning-900 mb-4">Agregar un partido:</h1>
           <div>
             <form onSubmit={handleSubmit}>
@@ -376,12 +400,16 @@ const DetailsDerby = () => {
               </div>
               <div className="grid grid-cols-1 justify-items-stretch">
                 <div className="justify-self-end flex justify-center items-center px-4 py-2 ">            
-                  <button type="submit" className="btn bg-neutral-900 hover:bg-neutral-700 text-white font-bold py-2 px-4 rounded flex-end">Agregar Partido  </button>
+                  <button type="submit"  disabled={isDisabled}  
+                    className={`btn bg-neutral-900 hover:bg-neutral-700 ${isDisabled? 'shadow-lg opacity-50 cursor-not-allowed' :'' } text-white font-bold py-2 px-4 rounded flex-end`}>
+                    Agregar Partido
+                  </button>
                 </div>
               </div>
             </form>
           </div>
-
+          </>
+          )}
           <div className="mb-4">
             <h2 className="text-2xl font-bold">Partidos:</h2>
             <div className="grid grid-cols-1 justify-items-stretch">
@@ -392,7 +420,8 @@ const DetailsDerby = () => {
                     </svg>
                     Grupos
                   </button>
-                  <button onClick={() => handleGenerateRounds(id)} className="bg-blue-500 hover:bg-blue-700 text-white rounded p-2 mr-2 flex items-center">
+                  <button onClick={() => handleGenerateRounds(id)}  disabled={isDisabled} 
+                    className={`bg-blue-500 hover:bg-blue-700 ${isDisabled? 'shadow-lg opacity-50 cursor-not-allowed' :'' } text-white rounded p-2 mr-2 flex items-center`}>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5 mr-2">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.375 19.5h17.25m-17.25 0a1.125 1.125 0 0 1-1.125-1.125M3.375 19.5h7.5c.621 0 1.125-.504 1.125-1.125m-9.75 0V5.625m0 12.75v-1.5c0-.621.504-1.125 1.125-1.125m18.375 2.625V5.625m0 12.75c0 .621-.504 1.125-1.125 1.125m1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125m0 3.75h-7.5A1.125 1.125 0 0 1 12 18.375m9.75-12.75c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125m19.5 0v1.5c0 .621-.504 1.125-1.125 1.125M2.25 5.625v1.5c0 .621.504 1.125 1.125 1.125m0 0h17.25m-17.25 0h7.5c.621 0 1.125.504 1.125 1.125M3.375 8.25c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125m17.25-3.75h-7.5c-.621 0-1.125.504-1.125 1.125m8.625-1.125c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125M12 10.875v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 10.875c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125M13.125 12h7.5m-7.5 0c-.621 0-1.125.504-1.125 1.125M20.625 12c.621 0 1.125.504 1.125 1.125v1.5c0 .621-.504 1.125-1.125 1.125m-17.25 0h7.5M12 14.625v-1.5m0 1.5c0 .621-.504 1.125-1.125 1.125M12 14.625c0 .621.504 1.125 1.125 1.125m-2.25 0c.621 0 1.125.504 1.125 1.125m0 1.5v-1.5m0 0c0-.621.504-1.125 1.125-1.125m0 0h7.5" />
                     </svg>
@@ -436,8 +465,8 @@ const DetailsDerby = () => {
                               </ul>
                             </td>
                             <td className="px-6 py-4 border-b border-gray-300">
-                              <button onClick={() => handleEditClick(match)} className="bg-neutral-900 hover:bg-neutral-700  font-bold text-white rounded p-2 mr-2">Editar</button>
-                              <Link onClick={() => deleteMatch(match.id)} className='btn bg-red-600 hover:bg-red-800 text-white font-bold p-2.5 mr-2 rounded'>Borrar</Link>
+                              <button  disabled={isDisabled} onClick={() => handleEditClick(match)} className={`bg-neutral-900 hover:bg-neutral-700 ${isDisabled? 'shadow-lg opacity-50 cursor-not-allowed' :'' } font-bold text-white rounded p-2 mr-2`}>Editar</button>
+                              <button  disabled={isDisabled} onClick={() => deleteMatch(match.id)} className={`btn bg-red-600 hover:bg-red-800 ${isDisabled? 'shadow-lg opacity-50 cursor-not-allowed' :'' } text-white font-bold p-2 mr-2 rounded`}>Borrar</button>
                             </td>
                           </tr>
                         ))}
@@ -473,72 +502,82 @@ const DetailsDerby = () => {
           </div>
           <h1 className='text-sm text-yellow-800'><b>NOTA: Si en alguna ronda existe una pelea subrayada en azul y los anillos y pesos son iguales eso significa que es una pelea con un gallo extra</b></h1>
           {/* Ciclo para generar rondas según derby.no_rooster */}
-          {Array.from({ length: derbyDetails.no_roosters }).map((_, index) => (
-            <div key={index}>
-              <h3 className='mt-5 text-xl '><b>RONDA N° {index + 1} </b></h3>
-              <div className="flex flex-col container mb-10">
-                <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
-                  <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
-                    <div className="overflow-hidden">
-                      <table className="min-w-full text-left text-sm font-light border border-gray-300">
-                        <thead className="bg-neutral-400 dark:bg-neutral-600 dark:text-neutral-200">
-                          <tr>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300" style={{ width: '5%' }}>N°</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Peso</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Anillo</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300 w-25 bg-green-400" style={{ width: '25%' }}>Nombre Partido Verde</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300" style={{ width: '5%' }}></th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300 w-25 bg-red-400" style={{ width: '25%' }}>Nombre Partido Rojo</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Peso</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Anillo</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {rounds.filter(round => round.ronda === index + 1).map((round, i) => {
-                            const isCheckedGallo1 = ganadoresSeleccionados.some(item => item.roundId === round.id && item.gallo === 'gallo1');
-                            const isCheckedGallo2 = ganadoresSeleccionados.some(item => item.roundId === round.id && item.gallo === 'gallo2');
+          {Array.from({ length: derbyDetails.no_roosters }).map((_, index) => {
+            const filteredRounds = rounds.filter(round => round.ronda === index + 1);
 
-                            return (
-                              <tr key={round.id} className={`border-b dark:border-neutral-500 ${round.gallo2.ring === round.gallo1.ring ? 'bg-blue-400' : 'bg-white'}`}>
-                                <td className="whitespace-nowrap px-6 py-2">{i + 1}</td>
-                                <td className="whitespace-nowrap px-6 py-2">{round.gallo1.weight}g</td>
-                                <td className="whitespace-nowrap px-6 py-2">{round.gallo1.ring}</td>
-                                <td className="whitespace-nowrap px-6 py-2 font-bold text-green-700 text-right" style={{ whiteSpace: 'pre-wrap' }}>
-                                    {round.gallo1.match_name}
-                                    <input
-                                      className='ml-3 h-5 w-5'
-                                      type="checkbox"
-                                      id={`ganador-${round.id}-${i}-gallo1`}
-                                      name={`ganador-${round.id}-${i}-gallo1`}
-                                      checked={isCheckedGallo1}
-                                      onChange={() => handleSeleccionarGanador(round.id, 'gallo1', round.gallo1.ring)}
-                                    />
-                                </td>
-                                <td className="whitespace-nowrap px-6 py-2 font-bold">VS</td>
-                                <td className="whitespace-nowrap px-6 py-2 font-bold text-red-600" style={{ whiteSpace: 'pre-wrap' }}>
-                                    <input
-                                      className='mr-3 h-5 w-5'
-                                      type="checkbox"
-                                      id={`ganador-${round.id}-${i}-gallo2`}
-                                      name={`ganador-${round.id}-${i}-gallo2`}
-                                      checked={isCheckedGallo2}
-                                      onChange={() => handleSeleccionarGanador(round.id, 'gallo2', round.gallo2.ring)}
-                                    />
-                                    {round.gallo2.ring === round.gallo1.ring ? 'GALLO EXTRA' : round.gallo2.match_name}
-                                </td>
-                                <td className="whitespace-nowrap px-6 py-2">{round.gallo2.weight}g</td>
-                                <td className="whitespace-nowrap px-6 py-2">{round.gallo2.ring}</td>
+            return (
+              <div key={index}>
+                <h3 className='mt-5 text-xl'><b>RONDA N° {index + 1}</b></h3>
+                <div className="flex flex-col container mb-10">
+                  {filteredRounds.length > 0 ? (
+                    <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
+                      <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
+                        <div className="overflow-hidden">
+                          <table className="min-w-full text-left text-sm font-light border border-gray-300">
+                            <thead className="bg-neutral-400 dark:bg-neutral-600 dark:text-neutral-200">
+                              <tr>
+                                <th className="px-6 py-4 border-b border-gray-300" style={{ width: '5%' }}>N°</th>
+                                <th className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Peso</th>
+                                <th className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Anillo</th>
+                                <th className="px-6 py-4 border-b border-gray-300 w-25 bg-green-400" style={{ width: '25%' }}>Nombre Partido Verde</th>
+                                <th className="px-6 py-4 border-b border-gray-300" style={{ width: '5%' }}></th>
+                                <th className="px-6 py-4 border-b border-gray-300 w-25 bg-red-400" style={{ width: '25%' }}>Nombre Partido Rojo</th>
+                                <th className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Peso</th>
+                                <th className="px-6 py-4 border-b border-gray-300" style={{ width: '10%' }}>Anillo</th>
                               </tr>
-                            );
-                          })}
-                        </tbody>
-                      </table>
+                            </thead>
+                            <tbody>
+                              {filteredRounds.map((round, i) => {
+                                const isCheckedGallo1 = ganadoresSeleccionados.some(item => item.roundId === round.id && item.gallo === 'gallo1');
+                                const isCheckedGallo2 = ganadoresSeleccionados.some(item => item.roundId === round.id && item.gallo === 'gallo2');
+
+                                return (
+                                  <tr key={round.id} className={`border-b dark:border-neutral-500 ${round.gallo2.ring === round.gallo1.ring ? 'bg-blue-400' : 'bg-white'}`}>
+                                    <td className="whitespace-nowrap px-6 py-2">{i + 1}</td>
+                                    <td className="whitespace-nowrap px-6 py-2">{round.gallo1.weight}g</td>
+                                    <td className="whitespace-nowrap px-6 py-2">{round.gallo1.ring}</td>
+                                    <td className="whitespace-nowrap px-6 py-2 font-bold text-green-700 text-right" style={{ whiteSpace: 'pre-wrap' }}>
+                                      {round.gallo1.match_name}
+                                      <input
+                                        className='ml-3 h-5 w-5'
+                                        type="checkbox"
+                                        id={`ganador-${round.id}-${i}-gallo1`}
+                                        name={`ganador-${round.id}-${i}-gallo1`}
+                                        checked={isCheckedGallo1}
+                                        disabled={isDisabled} 
+                                        onChange={() => handleSeleccionarGanador(round.id, 'gallo1', round.gallo1.ring)}
+                                      />
+                                    </td>
+                                    <td className="whitespace-nowrap px-6 py-2 font-bold">VS</td>
+                                    <td className="whitespace-nowrap px-6 py-2 font-bold text-red-600" style={{ whiteSpace: 'pre-wrap' }}>
+                                      <input
+                                        className='mr-3 h-5 w-5'
+                                        type="checkbox"
+                                        id={`ganador-${round.id}-${i}-gallo2`}
+                                        name={`ganador-${round.id}-${i}-gallo2`}
+                                        checked={isCheckedGallo2}
+                                        disabled={isDisabled} 
+                                        onChange={() => handleSeleccionarGanador(round.id, 'gallo2', round.gallo2.ring)}
+                                      />
+                                      {round.gallo2.ring === round.gallo1.ring ? 'GALLO EXTRA' : round.gallo2.match_name}
+                                    </td>
+                                    <td className="whitespace-nowrap px-6 py-2">{round.gallo2.weight}g</td>
+                                    <td className="whitespace-nowrap px-6 py-2">{round.gallo2.ring}</td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <p className="text-center text-gray-500">No hay datos disponibles para esta ronda.</p>
+                  )}
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
           {/* Aquí termina el ciclo */}
         </div>
       </div>
@@ -612,101 +651,160 @@ const DetailsDerby = () => {
           </div>
         </div>
       )}
+      
       {/* Modal de Grupos */}
       {modalVisible && (
-        <div className="modal">
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white p-6 rounded shadow-lg w-3/4"> 
-            <span className="close absolute top-2 right-2 text-gray-600 cursor-pointer" onClick={handleCloseModalGroup}>&times;</span>
-            <h2 className="text-xl font-bold mb-4">Grupos</h2>
-            <form onSubmit={handleAddGroup} className="mt-4">
-              <input
-                type="text"
-                value={groupName}
-                onChange={e => setGroupName(e.target.value)}
-                placeholder="Nombre del grupo"
-                className="border border-gray-300 rounded px-3 py-2 w-full md:1/2"
-                required
-              />
-              <div className="flex flex-col space-y-2">
-                <label className="font-semibold">Selecciona los partidos:</label>
-                <div className="flex  items-center">
-                  {matches.map(match => (
-                    <div key={match.id} className="flex items-center w-full md:1/4">
-                      <input
-                          type="checkbox"
-                          id={`match-${match.id}`}
-                          value={match.id}
-                          checked={selectedMatches.includes(match.id)}
-                          onChange={(e) => handleMatchChange(e, match.id)}
-                          className="mr-2"
-                      />
-                      <label htmlFor={`match-${match.id}`}>{match.name}</label>
+        <div className="modal fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white p-6 rounded shadow-lg w-3/4 max-h-screen overflow-y-auto relative">
+            {/* Botón de cerrar */}
+            <span
+              className="absolute top-2 right-2 text-gray-600 cursor-pointer"
+              onClick={handleCloseModalGroup}
+            >
+              &times;
+            </span>
+
+            {!isDisabled && (
+              <>
+                <h2 className="text-xl font-bold mb-4">Grupos</h2>
+                <form onSubmit={handleAddGroup} className="mt-4">
+                  <input
+                    type="text"
+                    value={groupName}
+                    onChange={(e) => setGroupName(e.target.value)}
+                    placeholder="Nombre del grupo"
+                    className="border border-gray-300 rounded px-3 py-2 w-full md:w-1/2"
+                    required
+                  />
+                  <div className="flex flex-col space-y-2 mt-2">
+                    <label className="font-semibold">Selecciona los partidos:</label>
+                    <div className="flex flex-wrap items-center w-full">
+                      {matches.map((match) => (
+                        <div
+                          key={match.id}
+                          className="flex items-center w-1/2 md:w-1/4 mb-2"
+                        >
+                          <input
+                            type="checkbox"
+                            id={`match-${match.id}`}
+                            value={match.id}
+                            checked={selectedMatches.includes(match.id)}
+                            onChange={(e) => handleMatchChange(e, match.id)}
+                            className="mr-2"
+                          />
+                          <label htmlFor={`match-${match.id}`}>{match.name}</label>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
-              <div className="grid grid-cols-1 justify-items-stretch">
-                <div className="justify-self-end flex justify-center items-center px-4 py-2 ">            
-                  <button type="submit" className="btn bg-neutral-900 hover:bg-neutral-700 text-white font-bold py-2 px-4 rounded flex-end">Agregar Grupo  </button>
-                </div>
-              </div>
-            </form>
-            <div className="flex flex-col container mb-10">
-                <div className="overflow-x-auto sm:-mx-6 lg:-mx-8">
-                  <div className="inline-block min-w-full py-2 sm:px-6 lg:px-8">
-                    <div className="overflow-hidden">
-                      <table className="min-w-full text-left text-sm font-light border border-gray-300">
-                        <thead className="bg-neutral-400 dark:bg-neutral-600 text-neutral-800 dark:text-neutral-200">
-                          <tr>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300">N°</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300">Grupo</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300">Partidos</th>
-                            <th scope="col" className="px-6 py-4 border-b border-gray-300">Acciones</th>
+                  </div>
+                  <div className="grid grid-cols-1 justify-items-stretch">
+                    <div className="justify-self-end flex justify-center items-center px-4 py-2">
+                      <button
+                        type="submit"
+                        className="btn bg-neutral-900 hover:bg-neutral-700 text-white font-bold py-2 px-4 rounded flex-end"
+                      >
+                        Agregar Grupo
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </>
+            )}
+
+            {/* Tabla de grupos */}
+            <div className="flex flex-col mt-6">
+              <div className="overflow-x-auto">
+                <div className="inline-block min-w-full py-2">
+                  <div className="overflow-hidden">
+                    <table className="min-w-full text-left text-sm font-light border border-gray-300">
+                      <thead className="bg-neutral-400 text-neutral-800">
+                        <tr>
+                          <th className="px-6 py-4 border-b border-gray-300">N°</th>
+                          <th className="px-6 py-4 border-b border-gray-300">Grupo</th>
+                          <th className="px-6 py-4 border-b border-gray-300">Partidos</th>
+                          <th className="px-6 py-4 border-b border-gray-300">Acciones</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {groups.map((group, index) => (
+                          <tr key={group.id} className="bg-white">
+                            <td className="px-6 py-4 font-bold border-b border-gray-300">
+                              {index + 1}
+                            </td>
+                            <td className="px-6 py-4 font-bold border-b border-gray-300">
+                              {group.name}
+                            </td>
+                            <td className="px-6 py-4 border-b border-gray-300">
+                              <ul>
+                                {group.matches ? (
+                                  group.matches.map((match, index) => (
+                                    <li key={index}>
+                                      <b>{match.name}</b>
+                                    </li>
+                                  ))
+                                ) : (
+                                  <li>No hay partidos registrados para este grupo</li>
+                                )}
+                              </ul>
+                            </td>
+                            <td className="px-6 py-4 border-b border-gray-300">
+                              <button
+                                disabled={isDisabled}
+                                onClick={() => handleEditGroupClick(group)}
+                                className={`bg-neutral-900 hover:bg-neutral-700 ${
+                                  isDisabled
+                                    ? "shadow-lg opacity-50 cursor-not-allowed"
+                                    : ""
+                                } font-bold text-white rounded p-2 mr-2`}
+                              >
+                                Editar
+                              </button>
+                              <button
+                                disabled={isDisabled}
+                                onClick={() => deleteGroup(group.id)}
+                                className={`btn bg-red-600 hover:bg-red-800 ${
+                                  isDisabled
+                                    ? "shadow-lg opacity-50 cursor-not-allowed"
+                                    : ""
+                                } text-white font-bold p-2 mr-2 rounded`}
+                              >
+                                Borrar
+                              </button>
+                            </td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {groups.map((group, index) => (
-                            <tr key={group.id} className="bg-white dark:bg-neutral-700">
-                              <td className="px-6 py-4 font-bold border-b border-gray-300">{index + 1}</td>
-                              <td className="px-6 py-4 font-bold border-b border-gray-300">{group.name}</td>
-                              <td className="px-6 py-4 border-b border-gray-300">
-                                <ul>
-                                  {group.matches ? (
-                                    group.matches.map((match, index) => (
-                                      <li key={index}><b><b>{match.name}</b></b></li>
-                                    ))
-                                  ) : (
-                                    <li>No hay partidos registrados para este grupo</li>
-                                  )}
-                                </ul>
-                              </td>
-                              <td className="px-6 py-4 border-b border-gray-300">
-                                <button onClick={() => handleEditGroupClick(group)} className="bg-neutral-900 hover:bg-neutral-700  font-bold text-white rounded p-2 mr-2">Editar</button>
-                                <Link onClick={() => deleteGroup(group.id)} className='btn bg-red-600 hover:bg-red-800 text-white font-bold p-2.5 mr-2 rounded'>Borrar</Link>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-1 justify-items-stretch">
-                <div className="justify-self-end flex justify-center items-center px-4 py-2 ">            
-                  <button onClick={handleCloseModalGroup} className="mt-2 bg-gray-300 hover:bg-gray-400 text-gray-700 px-4 py-2 rounded flex font-bold">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="h-5 w-5">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-                    </svg>
-                    Cerrar
-                  </button>
-                </div>
-              </div>            
+            </div>
+
+            {/* Botón de cerrar */}
+            <div className="grid grid-cols-1 justify-items-stretch mt-4">
+              <div className="justify-self-end">
+                <button
+                  onClick={handleCloseModalGroup}
+                  className="mt-2 bg-gray-800 hover:bg-gray-600 text-white px-4 py-2 rounded flex font-bold"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="h-5 w-5"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                  </svg>
+                  Cerrar
+                </button>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
       )}
+
       {editModalGroup && (
         <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white p-6 rounded shadow-lg">
@@ -726,11 +824,11 @@ const DetailsDerby = () => {
               </div>
               <div className="flex flex-col space-y-2">
                 <label className="font-semibold">Selecciona los partidos:</label>
-                <div className="flex  items-center">
+                <div className="flex flex-wrap items-center">
                   {matches.map(match => {
                       const isChecked = editedGroupData.matches.some(item => item.id === match.id);
                       return (
-                          <div key={match.id} className="flex items-center w-full md:1/4">
+                          <div key={match.id} className="flex items-center w-full md:1/8">
                               <input
                                   type="checkbox"
                                   id={`match-${match.id}`}
